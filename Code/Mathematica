@@ -1,0 +1,46 @@
+Clear["`*"];
+\[Alpha] = \[Pi]/6;
+f[x_] := Sin[x^2 - 3 x^3];
+xlower = -1;
+xupper = 1;
+
+fxlower = NMinValue[{f[x], xlower <= x, x <= xupper}, x];
+fxupper = NMaxValue[{f[x], xlower <= x, x <= xupper}, x];
+step = 5;
+stepx = N[(xupper - xlower)/step];
+stepfx = N[(fxupper - fxlower)/step];
+
+(*t=AffineTransform[{{{Cos[\[Alpha]],-Sin[\[Alpha]]},{Sin[\[Alpha]],\
+Cos[\[Alpha]]}},{1,2}}];*)
+(*t=AffineTransform[{{{1,2.5},{-1.3,0.7}},{1,2}}];*)
+t = RotationTransform[30 Degree, {0, 0}];
+
+basic1 = ParametricPlot[{x, f[x]}, {x, xlower, xupper}, Axes -> False,
+     Frame -> None] // Cases[#, Line[___], Infinity] &;
+(*
+basic2=GraphicsGroup[{InfiniteLine[{0,0},{0,1}],InfiniteLine[{1,1},{0,\
+1}],InfiniteLine[{2,2},{0,1}],InfiniteLine[{3,3},{0,1}],InfiniteLine[{\
+4,4},{0,1}]}];
+basic3=GraphicsGroup[{InfiniteLine[{4,4},{1,0}],InfiniteLine[{3,3},{1,\
+0}],InfiniteLine[{2,2},{1,0}],InfiniteLine[{1,1},{1,0}],InfiniteLine[{\
+0,0},{1,0}]}];
+*)
+basic2 = Line[{{xlower, fxlower}, {xlower, fxupper}}];
+For[i = xlower, i <= xupper, i = i + stepx,
+ basic2 = GraphicsGroup[{basic2, Line[{{i, fxlower}, {i, fxupper}}]}];
+ ]
+
+basic3 = Line[{{xlower, fxlower}, {xupper, fxlower}}];
+For[j = fxlower, j <= fxupper, j = j + stepfx,
+ basic3 = GraphicsGroup[{basic3, Line[{{xlower, j}, {xupper, j}}]}];
+ ]
+(**)
+(*
+basic2=Line[{{xlower,fxlower},{xupper,fxupper}}];
+basic3=Line[{{xlower,fxlower},{xupper,fxupper}}];
+*)
+basic = GraphicsGroup[{basic1, basic2, basic3}];
+p1 = Graphics[basic, Axes -> False]
+
+
+Graphics[GeometricTransformation[basic, t], Axes -> False]
