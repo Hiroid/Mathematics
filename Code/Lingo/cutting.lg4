@@ -1,0 +1,22 @@
+model:
+sets:
+mode/1..4/ : x;
+param/1..4/;
+matrix(mode, param) : a; 
+endsets
+data:
+a = @file(cutting.txt);
+enddata
+max = z;
+z = 0.1 * k - 0.001 * (@sum(mode(i) : x(i) * a(i, 3)) + L1 * 157.08 + L2 * 19.64);
+k <= x(1) + 2 * x(2) + 4 * x(4);
+2 * k <= 10 * x(1) + 4 * x(2) + 16 * x(3) + 5 * x(4);
+x(4) <= 20000;
+@sum(mode(i) | i #LE# 3 : x(i)) <= 50000;
+L1 = x(1) + 2 * x(2) + 4 * x(4) - k;
+L2 = 10 * x(1) + 4 * x(2) + 16 * x(3) + 5 * x(4) - 2 * k;
+@sum(mode(i) : x(i) * a(i, 4)) <= 40 * 3600;
+@for(mode(i) : @gin(x(i)));
+@gin(k);
+@gin(L1);
+@gin(L2);
