@@ -15,7 +15,7 @@ double p_Satellite = 2, self_Satellite = 0;
 double p_Venus = 3, self_Venus = 0;
 double step = 0.01f; bool active = 0;
 GLUquadricObj* e_tex = gluNewQuadric();
-const int img_num = 3;
+const int img_num = 5;
 GLuint all_texture[img_num];
 
 void init(void) {
@@ -52,13 +52,22 @@ void init(void) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     
+    // Sky
+    all_texture[3] = SOIL_load_OGL_texture(
+        "sky.png",
+        SOIL_LOAD_AUTO,
+        SOIL_CREATE_NEW_ID,
+        SOIL_FLAG_INVERT_Y
+    );
+    glBindTexture(GL_TEXTURE_2D, all_texture[3]);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     
+    glBindTexture(GL_TEXTURE_2D, all_texture[4]);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_BLEND);
-
-    glLightModeli(0x81F8, 0x81F9);
 
     glShadeModel(GL_SMOOTH);
     glEnable(GL_LIGHT0);
@@ -95,12 +104,10 @@ void sun() {
     glPushMatrix();
     material_sun();
     gluQuadricTexture(e_tex, GLU_TRUE);
-    // glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT);
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, all_texture[0]);
     gluSphere(e_tex, 1.0f, 50.0f, 50.0f);
     glBindTexture(GL_TEXTURE_2D, 0);
-    // glPopAttrib();
     gluQuadricTexture(e_tex, GLU_FALSE);
     glPopMatrix();
 }
@@ -118,17 +125,17 @@ void earth() {
     glRotatef((GLfloat)self_earth, 0.0, 1.0, 0.0);
     glPopMatrix();
 
+    // earth
     gluQuadricTexture(e_tex, GLU_TRUE);
-    glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT);
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, all_texture[1]);
     gluQuadricDrawStyle(e_tex, GLU_FILL);
     gluSphere(e_tex, 0.4, 50, 50);
     glBindTexture(GL_TEXTURE_2D, 0);
-    glPopAttrib();
+    // glPopAttrib();
     gluQuadricTexture(e_tex, GLU_FALSE);
 
-    
+    // moon
     glPushMatrix();
     glRotatef((GLfloat)p_moon, 0.0, 0.0, 1.0);
     glTranslatef(2, 0.0, 0.0);
@@ -136,7 +143,6 @@ void earth() {
     glRotatef((GLfloat)self_moon, 0.0, 1.0, 0.0);
     glPopMatrix();
     gluQuadricTexture(e_tex, GLU_TRUE);
-    glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT);
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, all_texture[2]);
     gluQuadricDrawStyle(e_tex, GLU_FILL);
@@ -144,6 +150,7 @@ void earth() {
     glBindTexture(GL_TEXTURE_2D, 0);
     glPopMatrix();
 
+    // Satellite
     glPushMatrix();
     glRotatef((GLfloat)p_Satellite, 0.0, 0.0, 1.0);
     glTranslatef(1.5, 0.0, 0.0);
@@ -151,15 +158,76 @@ void earth() {
     glRotatef((GLfloat)self_Satellite, 0.0, 1.0, 0.0);
     glPopMatrix();
     gluQuadricTexture(e_tex, GLU_TRUE);
-    glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT);
     glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, all_texture[2]);
+    glBindTexture(GL_TEXTURE_2D, all_texture[0]);
     gluQuadricDrawStyle(e_tex, GLU_FILL);
-    gluSphere(e_tex, 0.05, 50, 50);
+    gluSphere(e_tex, 0.1, 50, 50);
     glBindTexture(GL_TEXTURE_2D, 0);
     glPopMatrix();
 
     glPopMatrix();
+}
+
+void sky(float x, float y, float z, float width, float height, float len) {
+    glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT);
+    glDepthMask(GL_FALSE);
+    glEnable(GL_TEXTURE_2D);
+
+    glBindTexture(GL_TEXTURE_2D, all_texture[3]);
+
+    //back face
+    glBegin(GL_QUADS);
+    glNormal3f(0.0, 0.0, 1.0);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(x + width, y, z);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(x + width, y + height, z);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(x, y + height, z);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(x, y, z);
+    glEnd();
+    //front face
+    glBegin(GL_QUADS);
+    glNormal3f(0.0, 0.0, -1.0);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(x, y, z + len);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(x, y + height, z + len);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(x + width, y + height, z + len);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(x + width, y, z + len);
+    glEnd();
+    //bottom face
+    glBegin(GL_QUADS);
+    glNormal3f(0.0, 1.0, 0.0);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(x, y, z);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(x, y, z + len);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(x + width, y, z + len);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(x + width, y, z);
+    glEnd();
+    //top face
+    glBegin(GL_QUADS);
+    glNormal3f(0.0, -1.0, 0.0);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(x + width, y + height, z);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(x + width, y + height, z + len);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(x, y + height, z + len);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(x, y + height, z);
+    glEnd();
+    //left face
+    glBegin(GL_QUADS);
+    glNormal3f(1.0, 0.0, 0.0);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(x, y + height, z);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(x, y + height, z + len);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(x, y, z + len);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(x, y, z);
+    glEnd();
+    //right face
+    glBegin(GL_QUADS);
+    glNormal3f(0.0, 0.0, -1.0);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(x + width, y, z);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(x + width, y, z + len);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(x + width, y + height, z + len);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(x + width, y + height, z);
+    glEnd();
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glDepthMask(GL_TRUE);
+    glPopAttrib();
+
 }
 
 void display(void) {
@@ -174,6 +242,7 @@ void display(void) {
     GLfloat sun_light_position[] = { 0.0f, 0.0f, 0.0f, 1.0f };
     glLightfv(GL_LIGHT0, GL_POSITION, sun_light_position);
 
+    sky(-1000 + xx, -1000 + yy, -1000 + zz, 2000.0f, 2000.0f, 2000.0f);
     sun();
     earth();
 
